@@ -369,10 +369,14 @@ func (o *DrainCmdOptions) RunCordonOrUncordon(desired bool) error {
 		cordonOrUncordon = "un" + cordonOrUncordon
 	}
 
+	var lastKnownError error
+	lastKnownError = nil
+
 	for _, nodeInfo := range o.nodeInfos {
 
 		printError := func(err error) {
 			fmt.Fprintf(o.ErrOut, "error: unable to %s node %q: %v\n", cordonOrUncordon, nodeInfo.Name, err)
+			lastKnownError = err
 		}
 
 		gvk := nodeInfo.ResourceMapping().GroupVersionKind
@@ -424,7 +428,7 @@ func (o *DrainCmdOptions) RunCordonOrUncordon(desired bool) error {
 		}
 	}
 
-	return nil
+	return lastKnownError
 }
 
 // already() and changed() return suitable strings for {un,}cordoning
